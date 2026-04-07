@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'rate_id', 'name', 'color', 'amount', 'start_date', 'end_date'])]
+#[Fillable(['rate_id', 'name', 'color', 'amount', 'start_date', 'end_date'])]
 class Investment extends Model
 {
     /** @use HasFactory<InvestmentFactory> */
