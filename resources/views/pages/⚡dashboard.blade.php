@@ -1,26 +1,89 @@
 <?php
 
+use App\Models\Rate;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new #[Title('Dashboard')] class extends Component {
-    //
+
+    #[Validate('required|string|max:255')]
+    public string $name = '';
+
+    #[Validate('required|string')]
+    public string $color = '#1C1F2E';
+
+    #[Validate('required|numeric|min:0')]
+    public float $amount = 0;
+
+    #[Validate('required|exists:rates,id')]
+    public ?int $rate_id = null;
+
+    public ?int $institution_id = null;
+
+    #[Validate('required|date')]
+    public string $start_date = '';
+
+    #[Validate('required|date|after:start_date')]
+    public string $end_date = '';
+
+    #[Computed]
+    public function investments()
+    {
+        return Auth::user()->investments()->with('rate.institution')->latest()->get();
+    }
 };
 ?>
 
-<div class="flex flex-col space-y-4">
-    <flux:heading size="xl">Dashboard</flux:heading>
-    <flux:modal.trigger name="edit-profile">
-        <flux:button variant="primary" class="w-fit">Agregar inversion</flux:button>
-    </flux:modal.trigger>
-    <flux:modal name="edit-profile" class="md:w-96">
+<div class="max-w-5xl mx-auto py-10 px-4">
+    <div class="flex items-center justify-between mb-8">
+        <flux:heading size="xl">Mis inversiones</flux:heading>
+
+        <flux:modal.trigger name="create-investment">
+            <flux:button variant="primary" icon="plus">Agregar inversion</flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    @if ($this->investments->isEmpty())
+        <div class="flex flex-col items-center justify-center">
+            <flux:icon name="banknotes" class="size-10 mb-3" />
+            <flux:heading size="lg">Sin inversiones aún</flux:heading>
+            <flux:text class="mt-1 mb-4">Crea tu primera inversion</flux:text>
+            <flux:modal.trigger name="create-investment">
+                <flux:button variant="primary" icon="plus">Nueva inversion</flux:button>
+            </flux:modal.trigger>
+        </div>
+    @else
+        {{-- <flux:table>
+            <flux:columns>
+                <flux:column>Nombre</flux:column>
+                <flux:column>Institucion</flux:column>
+                <flux:column>Tasa</flux:column>
+                <flux:column>Monto</flux:column>
+                <flux:column>Inicio</flux:column>
+                <flux:column>Fin</flux:column>
+            </flux:columns>
+
+            <flux:rows>
+                @foreach ($this->investments as $investment)
+                    <flux:table:row wire:key="{{ $investment->id }}">
+                        <flux:table:cell>{{ $investment->name }}</flux:cell>
+                    </flux:table:row>
+                @endforeach
+            </flux:rows>
+        </flux:table> --}}
+    @endif
+
+    <flux:modal name="create-investment" class="md:w-96">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Agregar inversion</flux:heading>
                 <flux:text class="mt-2">Agrega los datos de la nueva inversión.</flux:text>
             </div>
-            <flux:input label="Nombre" placeholder="Nombre de la inversión" />
+            <flux:input wire:model="name" label="Nombre" placeholder="Nombre de la inversión" />
             <flux:input.group label="Monto">
                 <flux:input.group.prefix>$</flux:input.group.prefix>
                 <flux:input mask:dynamic="$money($input)" placeholder="0.00" />
