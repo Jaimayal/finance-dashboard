@@ -84,10 +84,9 @@ new #[Title('Dashboard')] class extends Component {
                 <flux:text class="mt-2">Agrega los datos de la nueva inversión.</flux:text>
             </div>
             <flux:input wire:model="name" label="Nombre" placeholder="Nombre de la inversión" />
-            <flux:input.group label="Monto">
-                <flux:input.group.prefix>$</flux:input.group.prefix>
-                <flux:input mask:dynamic="$money($input)" placeholder="0.00" />
-            </flux:input.group>
+            <flux:input wire:model.live="amount" mask:dynamic="$money($input)" placeholder="0.00"
+                icon="currency-dollar" />
+            <flux:text>{{ $amount }}</flux:text>
             <flux:input label="Fecha de inicio" type="date" />
             <div class="flex">
                 <flux:spacer />
