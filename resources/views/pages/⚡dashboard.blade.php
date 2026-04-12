@@ -17,7 +17,19 @@ new #[Title('Dashboard')] class extends Component {
     public string $color = '#1C1F2E';
 
     #[Validate('required|numeric|min:0')]
-    public float $amount = 0;
+    public ?int $amount = null;
+
+    public function updatingAmount($value)
+    {
+        $this->amount = preg_replace('/[^\d]/', '', $value);
+    }
+
+    public string $displayedAmount = '';
+
+    public function updatedDisplayedAmount($value)
+    {
+        $this->amount = preg_replace('/[^\d]/', '', $value);
+    }
 
     #[Validate('required|exists:rates,id')]
     public ?int $rate_id = null;
@@ -111,7 +123,8 @@ new #[Title('Dashboard')] class extends Component {
                 <flux:text class="mt-2">Agrega los datos de la nueva inversión.</flux:text>
             </div>
             <flux:input wire:model="name" label="Nombre" placeholder="Nombre de la inversión" />
-            <flux:input wire:model="amount" mask:dynamic="$money($input)" placeholder="0.00" icon="currency-dollar" />
+            <flux:input wire:model.live="displayedAmount" label="Monto" mask:dynamic="$money($input)"
+                placeholder="0.00" icon="currency-dollar" />
             <flux:text>{{ $amount }}</flux:text>
             <flux:input label="Fecha de inicio" type="date" />
             <flux:select label="Institución" wire:model.live="institution_id">
