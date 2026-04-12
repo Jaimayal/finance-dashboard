@@ -36,6 +36,32 @@ new #[Title('Dashboard')] class extends Component {
     {
         return Auth::user()->investments()->with('rate.institution')->latest()->get();
     }
+
+    #[Computed]
+    public function institutions()
+    {
+        return Institution::all();
+    }
+
+    #[Computed]
+    public function rates()
+    {
+        if ($this->institution_id === null) {
+            return [];
+        }
+
+        return Rate::where('institution_id', $this->institution_id)->latest()->get();
+    }
+
+    #[Computed]
+    public function rate()
+    {
+        if ($this->rate_id === null) {
+            return null;
+        }
+
+        return Rate::find($this->rate_id);
+    }
 };
 ?>
 
