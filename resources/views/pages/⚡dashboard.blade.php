@@ -1,15 +1,15 @@
 <?php
 
+use App\Models\Institution;
 use App\Models\Rate;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new #[Title('Dashboard')] class extends Component {
-
+new #[Title('Dashboard')] class extends Component
+{
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -68,6 +68,22 @@ new #[Title('Dashboard')] class extends Component {
         }
 
         return Rate::find($this->rate_id);
+    }
+
+    public function save()
+    {
+        $this->validate();
+
+        Auth::user()->investments()->create([
+            'name' => $this->name,
+            'amount' => $this->amount,
+            'rate_id' => $this->rate_id,
+            'institution_id' => $this->institution_id,
+            'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
+        ]);
+
+        $this->reset(['name', 'amount', 'displayedAmount', 'rate_id', 'institution_id', 'start_date', 'end_date']);
     }
 };
 ?>
