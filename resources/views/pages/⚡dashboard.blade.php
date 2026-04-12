@@ -22,6 +22,7 @@ new #[Title('Dashboard')] class extends Component {
     #[Validate('required|exists:rates,id')]
     public ?int $rate_id = null;
 
+    #[Validate('required|exists:institutions,id')]
     public ?int $institution_id = null;
 
     #[Validate('required|date')]
