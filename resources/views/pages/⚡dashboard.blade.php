@@ -114,6 +114,32 @@ new #[Title('Dashboard')] class extends Component {
             <flux:input wire:model="amount" mask:dynamic="$money($input)" placeholder="0.00" icon="currency-dollar" />
             <flux:text>{{ $amount }}</flux:text>
             <flux:input label="Fecha de inicio" type="date" />
+            <flux:select label="Institución" wire:model.live="institution_id">
+                <flux:select.option value="">Selecciona una institución</flux:select.option>
+                @foreach ($this->institutions as $institution)
+                    <flux:select.option value="{{ $institution->id }}">{{ $institution->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+            @if ($this->institution_id !== null)
+                <flux:select label="Tasa" wire:model.live="rate_id">
+                    <flux:select.option value="">Selecciona una tasa</flux:select.option>
+                    @foreach ($this->rates as $rate)
+                        <flux:select.option value="{{ $rate->id }}">{{ $rate->name }} - {{ $rate->annual_rate }}%
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+            @if ($this->rate !== null)
+                <div class="flex flex-col space-y-2">
+                    <flux:text>
+                        Tasa anual: {{ $this->rate->annual_rate }}%
+                    </flux:text>
+                    <flux:text>
+                        Rendimiento diario estimado: $
+                        {{ number_format(($this->amount * ($this->rate->annual_rate / 100)) / 365, 2) }}
+                    </flux:text>
+                </div>
+            @endif
             <div class="flex">
                 <flux:spacer />
                 <flux:button type="submit" variant="primary">Agregar</flux:button>
