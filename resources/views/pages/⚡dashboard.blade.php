@@ -19,11 +19,6 @@ new #[Title('Dashboard')] class extends Component {
     #[Validate('required|numeric|min:0')]
     public ?int $amount = null;
 
-    public function updatingAmount($value)
-    {
-        $this->amount = preg_replace('/[^\d]/', '', $value);
-    }
-
     public string $displayedAmount = '';
 
     public function updatedDisplayedAmount($value)
