@@ -107,6 +107,17 @@ new #[Title('Dashboard')] class extends Component
             </flux:modal.trigger>
         </div>
     @else
+        {{-- Stringified investments for now --}}
+        @foreach ($this->investments as $investment)
+            <div class="p-4 mb-4 border rounded">
+                <flux:heading size="md">{{ $investment->name }}</flux:heading>
+                <flux:text>Institución: {{ $investment->rate->institution->name }}</flux:text>
+                <flux:text>Tasa: {{ $investment->rate->annual_rate }}%</flux:text>
+                <flux:text>Monto: ${{ number_format($investment->amount, 2) }}</flux:text>
+                <flux:text>Inicio: {{ $investment->start_date }}</flux:text>
+                <flux:text>Fin: {{ $investment->end_date ?? 'N/A' }}</flux:text>
+            </div>
+        @endforeach
         {{-- <flux:table>
             <flux:columns>
                 <flux:column>Nombre</flux:column>
