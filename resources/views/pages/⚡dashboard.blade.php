@@ -2,14 +2,14 @@
 
 use App\Models\Institution;
 use App\Models\Rate;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new #[Title('Dashboard')] class extends Component
-{
+new #[Title('Dashboard')] class extends Component {
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -33,10 +33,7 @@ new #[Title('Dashboard')] class extends Component
     public ?int $institution_id = null;
 
     #[Validate('required|date')]
-    public string $start_date = '';
-
-    #[Validate('required|date|after:start_date')]
-    public string $end_date = '';
+    public string $start_date;
 
     #[Computed]
     public function investments()
@@ -70,20 +67,48 @@ new #[Title('Dashboard')] class extends Component
         return Rate::find($this->rate_id);
     }
 
+    #[Computed]
+    public function dailyReturn()
+    {
+        if ($this->amount === null || $this->rate === null) {
+            return null;
+        }
+
+        return ($this->amount * ($this->rate->annual_rate / 100)) / 365;
+    }
+
+    public function mount()
+    {
+        $this->start_date = Carbon::now()->toDateString();
+        error_log('Dashboard component mounted with initial state: ' . json_encode($this));
+    }
+
     public function save()
     {
+        error_log('Saving investment with data: ' . json_encode($this));
         $this->validate();
+        error_log('Validation passed');
 
-        Auth::user()->investments()->create([
+        $selected_rate_days_span = $this->rate()->days;
+        $end_date = null;
+
+        if ($selected_rate_days_span > 0) {
+            $start_date = Carbon::parse($this->start_date);
+            $end_date = $start_date->copy()->addDays($selected_rate_days_span);
+        }
+
+        $investment = [
             'name' => $this->name,
             'amount' => $this->amount,
             'rate_id' => $this->rate_id,
             'institution_id' => $this->institution_id,
             'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
-        ]);
+            'end_date' => $end_date,
+        ];
 
-        $this->reset(['name', 'amount', 'displayedAmount', 'rate_id', 'institution_id', 'start_date', 'end_date']);
+        Auth::user()->investments()->create($investment);
+
+        $this->reset(['name', 'amount', 'displayedAmount', 'rate_id', 'institution_id', 'start_date']);
     }
 };
 ?>
@@ -139,7 +164,7 @@ new #[Title('Dashboard')] class extends Component
     @endif
 
     <flux:modal name="create-investment" class="md:w-96">
-        <div class="space-y-6">
+        <form wire:submit.prevent="save" class="space-y-6">
             <div>
                 <flux:heading size="lg">Agregar inversion</flux:heading>
                 <flux:text class="mt-2">Agrega los datos de la nueva inversión.</flux:text>
@@ -148,7 +173,7 @@ new #[Title('Dashboard')] class extends Component
             <flux:input wire:model.live="displayedAmount" label="Monto" mask:dynamic="$money($input)"
                 placeholder="0.00" icon="currency-dollar" />
             <flux:text>{{ $amount }}</flux:text>
-            <flux:input label="Fecha de inicio" type="date" />
+            <flux:input wire:model="start_date" label="Fecha de inicio" type="date" />
             <flux:select label="Institución" wire:model.live="institution_id">
                 <flux:select.option value="">Selecciona una institución</flux:select.option>
                 @foreach ($this->institutions as $institution)
@@ -159,7 +184,8 @@ new #[Title('Dashboard')] class extends Component
                 <flux:select label="Tasa" wire:model.live="rate_id">
                     <flux:select.option value="">Selecciona una tasa</flux:select.option>
                     @foreach ($this->rates as $rate)
-                        <flux:select.option value="{{ $rate->id }}">{{ $rate->name }} - {{ $rate->annual_rate }}%
+                        <flux:select.option value="{{ $rate->id }}">{{ $rate->name }} -
+                            {{ $rate->annual_rate }}%
                         </flux:select.option>
                     @endforeach
                 </flux:select>
@@ -171,7 +197,7 @@ new #[Title('Dashboard')] class extends Component
                     </flux:text>
                     <flux:text>
                         Rendimiento diario estimado: $
-                        {{ number_format(($this->amount * ($this->rate->annual_rate / 100)) / 365, 2) }}
+                        {{ number_format($this->dailyReturn(), 2) }}
                     </flux:text>
                 </div>
             @endif
@@ -179,6 +205,6 @@ new #[Title('Dashboard')] class extends Component
                 <flux:spacer />
                 <flux:button type="submit" variant="primary">Agregar</flux:button>
             </div>
-        </div>
+        </form>
     </flux:modal>
 </div>
